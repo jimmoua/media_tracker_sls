@@ -41,15 +41,27 @@ provider:
 #    - include-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: post
   fetch_media_list:
     handler: ddb_helpers.fetch_media_list
     events:
       - http:
-          path: /
+          path: /api/all
           method: get
+  create_media_entry:
+    handler: ddb_helpers.create_media_entry
+    events:
+      - http:
+          path: /api/new
+          method: post
+  delete_media_entry:
+    handler: ddb_helpers.delete_media_entry
+    events:
+      - http:
+          path: /api/delete
+          method: post
+  update_media_entry:
+    handler: ddb_helpers.update_media_entry
+    events:
+      - http:
+          path: /api/update
+          method: post
