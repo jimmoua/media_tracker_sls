@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: mediatracker
+service: media-tracker-api
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -26,11 +26,6 @@ provider:
   lambdaHashingVersion: 20201221
   stage: dev
   region: us-east-2
-
-# you can define service wide environment variables here
-  environment:
-    AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
-    AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
 
 # you can add packaging information here
 #package:
@@ -47,21 +42,25 @@ functions:
       - http:
           path: /api/all
           method: get
+          cors: true
   create_media_entry:
     handler: ddb_helpers.create_media_entry
     events:
       - http:
           path: /api/new
           method: post
+          cors: true
   delete_media_entry:
     handler: ddb_helpers.delete_media_entry
     events:
       - http:
           path: /api/delete
           method: post
+          cors: true
   update_media_entry:
     handler: ddb_helpers.update_media_entry
     events:
       - http:
           path: /api/update
           method: post
+          cors: true
