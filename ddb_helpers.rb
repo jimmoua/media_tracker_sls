@@ -1,91 +1,103 @@
 require 'aws-sdk'
 require 'json'
-require 'uuid'
+require 'securerandom'
 
 Aws.config.update(
   endpoint: 'https://dynamodb.us-east-2.amazonaws.com',
-  region: 'us-east-2',
-  credentials: Aws::Credentials.new(
-    ENV['AWS_ACCESS_KEY_ID'],
-    ENV['AWS_SECRET_ACCESS_KEY']
-  )
+  region: 'us-east-2'
 )
 
 # GET /api/all
 def fetch_media_list(event:, context:)
   ddb = Aws::DynamoDB::Client.new
-  ddb.scan({ table_name: 'Medias' })
+  l = ddb.scan({ table_name: 'Medias' })
+  {
+    statusCode: 200,
+    body: JSON.generate(l.items),
+    headers: {
+      'Access-Control-Allow-Origin': '*.jimmoua.com',
+      'Access-Control-Allow-Credentials': true
+    }
+  }
 rescue StandardError => e
   {
     statusCode: 500,
-    message: "Error - unable to fetch media entries: #{e.message}"
+    body: JSON.generate(
+      {
+        message: "Error - unable to fetch media entries: #{e.message}"
+      }
+    )
   }
 end
 
 # POST /api/new
 def create_media_entry(event:, context:)
-  rq = event
+  rq = JSON.parse(event['body'])
   ddb = Aws::DynamoDB::Client.new
-  mid = UUID.new.generate
-  ddb.put_item({
-                 table_name: 'Medias',
-                 item: {
-                   id: mid,
-                   title: rq['title'],
-                   type: rq['type'],
-                   status: rq['status']
-                 }
-               })
-  {
-    statusCode: 200,
-    mediaID: mid,
-  }
-rescue StandardError => e
-  {
-    statusCode: 500,
-    message: "Error - unable to create media entry: #{e.message}"
-  }
-end
-
-# POST /api/delete
-def delete_media_entry(event:, context:)
-  rq = event
-  ddb = Aws::DynamoDB::Client.new
-
-  # Search for item, if not exists, return 404
-  resp = ddb.get_item(
-    key: {
-      "id" => rq['id']
-    },
-    table_name: 'Medias'
-  )
-  if resp[:item].nil?
+  mid = SecureRandom.uuid
+  if rq['type'].nil? || rq['title'].nil? || rq['status'].nil?
     return {
-      statusCode: 404
+      statusCode: 400,
+      body: JSON.generate(
+        {
+          text: 'Please provide type, title, and status'
+        }
+      )
     }
   end
-
-  # Delete item
-  ddb.delete_item({ table_name: 'Medias', key: { id: rq['id'] } })
+  ddb.put_item(
+    {
+      table_name: 'Medias',
+      item: {
+        id: mid,
+        type: rq['type'],
+        status: rq['status'],
+        title: rq['title']
+      }
+    }
+  )
   {
     statusCode: 200
   }
 rescue StandardError => e
   {
     statusCode: 500,
-    text: "Error - could not delete media entry: #{e.message}"
+    body: JSON.generate(
+      {
+        message: "Error - unable to create media entry: #{e.message}"
+      }
+    )
+  }
+end
+
+# POST /api/delete
+def delete_media_entry(event:, context:)
+  rq = JSON.parse(event['body'])
+  mid = rq['id']
+  ddb = Aws::DynamoDB::Client.new
+  ddb.delete_item({ table_name: 'Medias', key: { id: mid } })
+  {
+    statusCode: 200
+  }
+rescue StandardError => e
+  {
+    statusCode: 500,
+    body: JSON.generate(
+      {
+        text: "Error - could not delete media entry: #{e.message}"
+      }
+    )
   }
 end
 
 # POST /api/update
 def update_media_entry(event:, context:)
-  rq = event
+  rq = JSON.parse(event['body'])
   ddb = Aws::DynamoDB::Client.new
-
   # Search for item, if not exists, return 404
   resp = ddb.get_item(
     key: {
-      "id" => rq['id']
+      id: rq['id']
     },
     table_name: 'Medias'
   )
@@ -110,9 +122,16 @@ def update_media_entry(event:, context:)
     }
   }
   ddb.update_item({ table_name: 'Medias', key: { id: rq['id'] }, attribute_updates: new_data })
+  {
+    statusCode: 200
+  }
 rescue StandardError => e
   {
     statusCode: 500,
-    text: "Error updating media: #{e.message}"
+    body: JSON.generate(
+      {
+        text: "Error updating media: #{e.message}"
+      }
+    )
   }
 end
