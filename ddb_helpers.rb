@@ -7,6 +7,12 @@ Aws.config.update(
   region: 'us-east-2'
 )
 
+def get_headers
+  {
+    'Access-Control-Allow-Origin': '*'
+  }
+end
+
 # GET /api/all
 def fetch_media_list(event:, context:)
   ddb = Aws::DynamoDB::Client.new
@@ -14,10 +20,7 @@ def fetch_media_list(event:, context:)
   {
     statusCode: 200,
     body: JSON.generate(l.items),
-    headers: {
-      'Access-Control-Allow-Origin': '*.jimmoua.com',
-      'Access-Control-Allow-Credentials': true
-    }
+    headers: get_headers
   }
 rescue StandardError => e
   {
@@ -26,7 +29,8 @@ rescue StandardError => e
       {
         message: "Error - unable to fetch media entries: #{e.message}"
       }
-    )
+    ),
+    headers: get_headers
   }
 end
 
@@ -42,7 +46,8 @@ def create_media_entry(event:, context:)
         {
           text: 'Please provide type, title, and status'
         }
-      )
+      ),
+      headers: get_headers
     }
   end
   ddb.put_item(
@@ -57,7 +62,8 @@ def create_media_entry(event:, context:)
     }
   )
   {
-    statusCode: 200
+    statusCode: 200,
+    headers: get_headers
   }
 rescue StandardError => e
   {
@@ -66,7 +72,8 @@ rescue StandardError => e
       {
         message: "Error - unable to create media entry: #{e.message}"
       }
-    )
+    ),
+    headers: get_headers
   }
 end
 
@@ -77,7 +84,8 @@ def delete_media_entry(event:, context:)
   ddb = Aws::DynamoDB::Client.new
   ddb.delete_item({ table_name: 'Medias', key: { id: mid } })
   {
-    statusCode: 200
+    statusCode: 200,
+    headers: get_headers
   }
 rescue StandardError => e
   {
@@ -86,7 +94,8 @@ rescue StandardError => e
       {
         text: "Error - could not delete media entry: #{e.message}"
       }
-    )
+    ),
+    headers: get_headers
   }
 end
 
@@ -103,7 +112,8 @@ def update_media_entry(event:, context:)
   )
   if resp[:item].nil?
     return {
-      statusCode: 404
+      statusCode: 404,
+      headers: get_headers
     }
   end
 
@@ -123,7 +133,8 @@ def update_media_entry(event:, context:)
   }
   ddb.update_item({ table_name: 'Medias', key: { id: rq['id'] }, attribute_updates: new_data })
   {
-    statusCode: 200
+    statusCode: 200,
+    headers: get_headers
   }
 rescue StandardError => e
   {
@@ -132,6 +143,7 @@ rescue StandardError => e
       {
         text: "Error updating media: #{e.message}"
       }
-    )
+    ),
+    headers: get_headers
   }
 end
