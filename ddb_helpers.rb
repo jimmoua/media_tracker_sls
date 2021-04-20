@@ -57,7 +57,8 @@ def create_media_entry(event:, context:)
         id: mid,
         type: rq['type'],
         status: rq['status'],
-        title: rq['title']
+        title: rq['title'],
+        last_updated: Time.new.iso8601.to_s
       }
     }
   )
@@ -128,6 +129,10 @@ def update_media_entry(event:, context:)
     },
     type: {
       value: rq['type'],
+      action: 'PUT'
+    },
+    last_updated: {
+      value: Time.now.iso8601.to_s,
       action: 'PUT'
     }
   }
