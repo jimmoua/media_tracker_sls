@@ -3,8 +3,7 @@ require 'json'
 require 'securerandom'
 
 Aws.config.update(
-  # endpoint: 'https://dynamodb.us-east-2.amazonaws.com',
-  endpoint: 'http://localhost:8000',
+  endpoint: 'https://dynamodb.us-east-2.amazonaws.com',
   region: 'us-east-2'
 )
 
@@ -40,12 +39,12 @@ def create_media_entry(event:, context:)
   rq = JSON.parse(event['body'])
   ddb = Aws::DynamoDB::Client.new
   mid = SecureRandom.uuid
-  if rq['type'].nil? || rq['title'].nil? || rq['status'].nil?
+  if rq['type'].nil? || rq['title'].nil? || rq['status'].nil? || rq['notes'].nil?
     return {
       statusCode: 400,
       body: JSON.generate(
         {
-          text: 'Please provide type, title, and status'
+          text: 'Please provide type, title, status, and notes'
         }
       ),
       headers: get_headers
@@ -59,6 +58,7 @@ def create_media_entry(event:, context:)
         type: rq['type'],
         status: rq['status'],
         title: rq['title'],
+        notes: rq['notes'],
         last_updated: Time.new.iso8601.to_s
       }
     }
@@ -121,7 +121,7 @@ def update_media_entry(event:, context:)
 
   # check to see if they actually modified anything
   item = resp[:item]
-  if item['title'].eql?(rq['title']) && item['type'].eql?(rq['type']) && item['status'].eql?(rq['status'])
+  if item['title'].eql?(rq['title']) && item['type'].eql?(rq['type']) && item['status'].eql?(rq['status']) && item['notes'].eql?(rq['notes'])
     return {
       statusCode: 204,
       body: JSON.generate(
@@ -144,6 +144,10 @@ def update_media_entry(event:, context:)
     },
     type: {
       value: rq['type'],
+      action: 'PUT'
+    },
+    notes: {
+      value: rq['notes'],
       action: 'PUT'
     },
     last_updated: {
