@@ -3,7 +3,8 @@ require 'json'
 require 'securerandom'
 
 Aws.config.update(
-  endpoint: 'https://dynamodb.us-east-2.amazonaws.com',
+  # endpoint: 'https://dynamodb.us-east-2.amazonaws.com',
+  endpoint: 'http://localhost:8000',
   region: 'us-east-2'
 )
 
@@ -114,6 +115,20 @@ def update_media_entry(event:, context:)
   if resp[:item].nil?
     return {
       statusCode: 404,
+      headers: get_headers
+    }
+  end
+
+  # check to see if they actually modified anything
+  item = resp[:item]
+  if item['title'].eql?(rq['title']) && item['type'].eql?(rq['type']) && item['status'].eql?(rq['status'])
+    return {
+      statusCode: 204,
+      body: JSON.generate(
+        {
+          text: "Nothing to update."
+        }
+      ),
       headers: get_headers
     }
   end
