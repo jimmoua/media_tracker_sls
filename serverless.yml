@@ -27,6 +27,9 @@ provider:
   stage: dev
   region: us-east-2
 
+plugins:
+  - serverless-ignore
+
 # you can add packaging information here
 #package:
 #  patterns:
@@ -37,30 +40,30 @@ provider:
 
 functions:
   fetch_media_list:
-    handler: ddb_helpers.fetch_media_list
+    handler: handler.MediaTracker.fetch_media_list
     events:
       - http:
-          path: /api/all
+          path: /api/media/all
           method: get
           cors: true
   create_media_entry:
-    handler: ddb_helpers.create_media_entry
+    handler: handler.MediaTracker.create_media_entry
     events:
       - http:
-          path: /api/new
+          path: /api/media
           method: post
           cors: true
   delete_media_entry:
-    handler: ddb_helpers.delete_media_entry
+    handler: handler.MediaTracker.delete_media_entry
     events:
       - http:
-          path: /api/delete
-          method: post
+          path: /api/media
+          method: delete
           cors: true
   update_media_entry:
-    handler: ddb_helpers.update_media_entry
+    handler: handler.MediaTracker.update_media_entry
     events:
       - http:
-          path: /api/update
-          method: post
+          path: /api/media
+          method: put
           cors: true
