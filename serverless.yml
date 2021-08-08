@@ -12,13 +12,22 @@
 # Happy Coding!
 
 service: media-tracker-api
-# app and org for use with dashboard.serverless.com
-#app: your-app-name
-#org: your-org-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 frameworkVersion: '2'
+
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!vendor/**'
+    - '!spec/**'
+    - '!coverage/**'
+    - '!package-lock.json'
+    - '!package.json'
+    - '!Gemfile'
+    - '!Gemfile.lock'
+    - '!.idea'
 
 provider:
   name: aws
@@ -26,17 +35,6 @@ provider:
   lambdaHashingVersion: 20201221
   stage: dev
   region: us-east-2
-
-plugins:
-  - serverless-ignore
-
-# you can add packaging information here
-#package:
-#  patterns:
-#    - '!exclude-me.rb'
-#    - '!exclude-me-dir/**'
-#    - include-me.rb
-#    - include-me-dir/**
 
 functions:
   fetch_media_list:
