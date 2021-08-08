@@ -1,6 +1,7 @@
-./Gemfile
-./coverage
-./vendor
-./spec
-./node_modules
-./package-lock.json
+Gemfile
+coverage
+vendor
+spec
+node_modules
+package-lock.json
+package.json
